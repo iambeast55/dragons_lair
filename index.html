@@ -3,13 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Window Browser</title>
+  <title>Dragon's Lair</title>
   <style>
     :root {
-      color-scheme: light;
+      color-scheme: dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f7f5ef;
-      color: #1c1d1f;
+      background: #070a10;
+      color: #eaf2ff;
+      --panel: rgba(13, 18, 30, 0.82);
+      --panel-strong: rgba(18, 25, 40, 0.94);
+      --line: rgba(127, 219, 255, 0.22);
+      --line-hot: rgba(255, 74, 143, 0.42);
+      --text-soft: #91a3b8;
+      --cyan: #7fdbff;
+      --pink: #ff4a8f;
+      --green: #7cffb2;
+      --amber: #ffd166;
     }
 
     * {
@@ -20,116 +29,218 @@
       margin: 0;
       min-height: 100vh;
       background:
-        linear-gradient(135deg, rgba(133, 176, 154, 0.28), transparent 38%),
-        linear-gradient(315deg, rgba(194, 86, 66, 0.16), transparent 42%),
-        #f7f5ef;
-    }
-
-    button,
-    select {
-      font: inherit;
+        linear-gradient(120deg, rgba(127, 219, 255, 0.11), transparent 34%),
+        linear-gradient(300deg, rgba(255, 74, 143, 0.12), transparent 38%),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 34px),
+        #070a10;
     }
 
     button {
+      border: 0;
+      font: inherit;
       cursor: pointer;
     }
 
     .shell {
-      width: min(1180px, calc(100% - 32px));
+      width: min(1440px, 100%);
+      min-height: 100vh;
       margin: 0 auto;
-      padding: 32px 0 48px;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
     }
 
-    header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 24px;
-      padding: 12px 0 26px;
-      border-bottom: 1px solid rgba(28, 29, 31, 0.14);
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 18px;
+      border-right: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(18, 25, 40, 0.96), rgba(7, 10, 16, 0.92)),
+        var(--panel-strong);
+    }
+
+    .brand {
+      display: grid;
+      gap: 8px;
+      padding: 0 8px 24px;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 5vw, 4.8rem);
-      line-height: 0.96;
+      color: #ffffff;
+      font-size: 1.4rem;
+      line-height: 1.1;
       letter-spacing: 0;
     }
 
     .meta {
-      margin: 10px 0 0;
-      color: #646057;
-      font-size: 0.98rem;
-      line-height: 1.5;
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      line-height: 1.45;
     }
 
-    .controls {
-      display: grid;
-      grid-template-columns: minmax(190px, 1fr) auto auto;
-      gap: 10px;
+    .rail-head {
+      display: flex;
       align-items: center;
-      width: min(100%, 620px);
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 8px 10px;
     }
 
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    label {
-      color: #646057;
-      font-size: 0.78rem;
-      font-weight: 700;
+    .rail-label {
+      color: var(--green);
+      font-size: 0.75rem;
+      font-weight: 800;
       text-transform: uppercase;
     }
 
-    select,
-    .icon-button {
-      min-height: 42px;
-      border: 1px solid rgba(28, 29, 31, 0.18);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.72);
-      color: #1c1d1f;
-      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+    .folder-list {
+      display: grid;
+      gap: 8px;
+      max-height: calc(100vh - 196px);
+      overflow: auto;
+      padding: 2px 4px 2px 0;
     }
 
-    select {
+    .folder-item {
       width: 100%;
-      padding: 0 34px 0 12px;
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border: 1px solid rgba(127, 219, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.035);
+      color: #dce9f8;
+      text-align: left;
+    }
+
+    .folder-item:hover,
+    .folder-item:focus-visible {
+      border-color: rgba(127, 219, 255, 0.48);
+      background: rgba(127, 219, 255, 0.08);
+      outline: none;
+    }
+
+    .folder-item.active {
+      border-color: rgba(255, 74, 143, 0.7);
+      background: linear-gradient(90deg, rgba(255, 74, 143, 0.17), rgba(127, 219, 255, 0.09));
+      box-shadow: 0 0 0 1px rgba(255, 74, 143, 0.12), 0 0 24px rgba(255, 74, 143, 0.08);
+    }
+
+    .folder-icon {
+      position: relative;
+      width: 23px;
+      height: 17px;
+      border: 1px solid rgba(127, 219, 255, 0.76);
+      border-radius: 3px;
+      background: rgba(127, 219, 255, 0.12);
+      box-shadow: 0 0 12px rgba(127, 219, 255, 0.18);
+    }
+
+    .folder-icon::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 1px;
+      width: 10px;
+      height: 6px;
+      border: 1px solid rgba(127, 219, 255, 0.76);
+      border-bottom: 0;
+      border-radius: 3px 3px 0 0;
+      background: rgba(127, 219, 255, 0.12);
+    }
+
+    .folder-name,
+    .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .folder-count {
+      color: var(--text-soft);
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .content {
+      min-width: 0;
+      padding: 30px clamp(18px, 4vw, 54px) 48px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .kicker {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font-size: 0.78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 4.6rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .summary {
+      margin: 10px 0 0;
+      color: var(--text-soft);
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex: 0 0 auto;
     }
 
     .icon-button {
       width: 44px;
+      height: 44px;
       display: grid;
       place-items: center;
-      font-size: 1.2rem;
+      border: 1px solid rgba(127, 219, 255, 0.28);
+      border-radius: 8px;
+      background: rgba(13, 18, 30, 0.88);
+      color: #eaf2ff;
+      font-size: 1.15rem;
     }
 
     .icon-button:hover,
-    select:hover {
-      border-color: rgba(28, 29, 31, 0.34);
-    }
-
-    .summary {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 22px 0 18px;
-      color: #646057;
-      font-size: 0.98rem;
+    .icon-button:focus-visible {
+      border-color: var(--cyan);
+      color: #ffffff;
+      outline: none;
     }
 
     .endpoint {
+      margin: 16px 0 20px;
+      color: var(--green);
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 0.88rem;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #3f594b;
     }
 
     .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 14px;
     }
 
@@ -137,12 +248,27 @@
       position: relative;
       height: 260px;
       overflow: hidden;
-      border: 1px solid rgba(28, 29, 31, 0.12);
+      border: 1px solid rgba(127, 219, 255, 0.16);
       border-radius: 8px;
-      background: #fffaf0;
+      background: #0d121e;
       color: inherit;
       padding: 0;
       text-align: left;
+    }
+
+    .tile::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 1px solid transparent;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .tile:hover::after,
+    .tile:focus-visible::after {
+      border-color: rgba(255, 74, 143, 0.62);
+      box-shadow: inset 0 0 0 1px rgba(127, 219, 255, 0.16);
     }
 
     .tile img {
@@ -150,46 +276,45 @@
       height: 100%;
       display: block;
       object-fit: cover;
-      transition: transform 180ms ease;
+      transition: transform 180ms ease, filter 180ms ease;
     }
 
     .tile:hover img,
     .tile:focus-visible img {
       transform: scale(1.035);
+      filter: saturate(1.08);
     }
 
     .caption {
       position: absolute;
       inset: auto 0 0;
       display: grid;
-      gap: 2px;
-      padding: 40px 12px 12px;
-      background: linear-gradient(transparent, rgba(0, 0, 0, 0.76));
+      gap: 3px;
+      padding: 48px 12px 12px;
+      background: linear-gradient(transparent, rgba(4, 7, 12, 0.88));
       color: #fff;
     }
 
     .name {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-weight: 800;
+      font-weight: 850;
     }
 
     .time {
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 0.86rem;
+      color: rgba(234, 242, 255, 0.72);
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 0.78rem;
     }
 
     .empty {
       display: grid;
       place-items: center;
       min-height: 360px;
-      border: 1px dashed rgba(28, 29, 31, 0.22);
+      border: 1px dashed rgba(127, 219, 255, 0.28);
       border-radius: 8px;
-      color: #646057;
+      color: var(--text-soft);
       text-align: center;
       padding: 32px;
-      background: rgba(255, 255, 255, 0.42);
+      background: rgba(13, 18, 30, 0.54);
     }
 
     .viewer {
@@ -198,7 +323,7 @@
       z-index: 20;
       display: none;
       grid-template-rows: auto 1fr auto;
-      background: rgba(11, 12, 14, 0.94);
+      background: rgba(4, 7, 12, 0.96);
       color: #fff;
     }
 
@@ -212,6 +337,7 @@
       justify-content: space-between;
       gap: 12px;
       padding: 12px 16px;
+      border-bottom: 1px solid rgba(127, 219, 255, 0.14);
     }
 
     .viewer-title {
@@ -238,30 +364,48 @@
       object-fit: contain;
     }
 
-    .viewer button {
-      border-color: rgba(255, 255, 255, 0.24);
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-    }
-
     .viewer-foot {
       padding: 0 16px 14px;
-      color: rgba(255, 255, 255, 0.72);
+      color: rgba(234, 242, 255, 0.72);
       text-align: center;
     }
 
-    @media (max-width: 760px) {
-      header {
-        display: grid;
-        align-items: stretch;
+    @media (max-width: 820px) {
+      .shell {
+        grid-template-columns: 1fr;
       }
 
-      .controls {
-        grid-template-columns: 1fr 44px 44px;
+      .sidebar {
+        position: static;
+        height: auto;
+        padding: 20px 16px 12px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
       }
 
-      .summary {
+      .brand {
+        padding-bottom: 16px;
+      }
+
+      .folder-list {
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(160px, 1fr);
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: none;
+        padding-bottom: 8px;
+      }
+
+      .content {
+        padding-top: 22px;
+      }
+
+      .toolbar {
         display: grid;
+      }
+
+      .actions {
+        justify-content: flex-start;
       }
 
       .tile {
@@ -277,39 +421,46 @@
 </head>
 <body>
   <div class="shell">
-    <header>
-      <div>
+    <aside class="sidebar" aria-label="Folders">
+      <div class="brand">
         <h1>Dragon's Lair</h1>
-        <p class="meta">Browse screenshots.</p>
+        <p class="meta">Window archive</p>
       </div>
 
-      <div class="controls" aria-label="Photo controls">
-        <div class="field">
-          <label for="folderSelect">Folder</label>
-          <select id="folderSelect"></select>
+      <div class="rail-head">
+        <span class="rail-label">Folders</span>
+        <button class="icon-button" id="refreshButton" type="button" title="Refresh folders and photos" aria-label="Refresh folders and photos">R</button>
+      </div>
+
+      <nav class="folder-list" id="folderList" aria-label="Photo folders"></nav>
+    </aside>
+
+    <main class="content">
+      <section class="toolbar">
+        <div>
+          <p class="kicker">Repository feed</p>
+          <h2 class="title" id="folderTitle">Loading</h2>
+          <p class="summary" id="countText" aria-live="polite">Loading folders...</p>
         </div>
-        <button class="icon-button" id="sortButton" type="button" title="Reverse timestamp sort" aria-label="Reverse timestamp sort">↕</button>
-        <button class="icon-button" id="refreshButton" type="button" title="Refresh folders and photos" aria-label="Refresh folders and photos">⟳</button>
-      </div>
-    </header>
+        <div class="actions">
+          <button class="icon-button" id="sortButton" type="button" title="Reverse timestamp sort" aria-label="Reverse timestamp sort">S</button>
+        </div>
+      </section>
 
-    <section class="summary" aria-live="polite">
-      <span id="countText">Loading folders...</span>
-      <span class="endpoint" id="endpointText"></span>
-    </section>
-
-    <main id="gallery" class="gallery"></main>
+      <div class="endpoint" id="endpointText"></div>
+      <section id="gallery" class="gallery" aria-label="Photos"></section>
+    </main>
   </div>
 
   <aside class="viewer" id="viewer" aria-modal="true" role="dialog" aria-label="Photo viewer">
     <div class="viewer-bar">
       <div class="viewer-title" id="viewerTitle"></div>
-      <button class="icon-button" id="closeButton" type="button" title="Close" aria-label="Close">×</button>
+      <button class="icon-button" id="closeButton" type="button" title="Close" aria-label="Close">X</button>
     </div>
     <div class="viewer-stage">
-      <button class="icon-button" id="prevButton" type="button" title="Previous photo" aria-label="Previous photo">‹</button>
+      <button class="icon-button" id="prevButton" type="button" title="Previous photo" aria-label="Previous photo">&lt;</button>
       <img class="viewer-image" id="viewerImage" alt="">
-      <button class="icon-button" id="nextButton" type="button" title="Next photo" aria-label="Next photo">›</button>
+      <button class="icon-button" id="nextButton" type="button" title="Next photo" aria-label="Next photo">&gt;</button>
     </div>
     <div class="viewer-foot" id="viewerMeta"></div>
   </aside>
@@ -321,11 +472,12 @@
     const rootFolder = "windows";
     const imagePattern = /\.(avif|gif|heic|jpeg|jpg|png|webp)$/i;
 
-    const folderSelect = document.querySelector("#folderSelect");
+    const folderList = document.querySelector("#folderList");
     const sortButton = document.querySelector("#sortButton");
     const refreshButton = document.querySelector("#refreshButton");
     const countText = document.querySelector("#countText");
     const endpointText = document.querySelector("#endpointText");
+    const folderTitle = document.querySelector("#folderTitle");
     const gallery = document.querySelector("#gallery");
     const viewer = document.querySelector("#viewer");
     const viewerImage = document.querySelector("#viewerImage");
@@ -354,6 +506,11 @@
 
     function displayFolder(folder) {
       return folder.replaceAll("-", " ").replaceAll("_", " ");
+    }
+
+    function countImages(folder) {
+      const prefix = `${rootFolder}/${folder}/`;
+      return repoTree.filter((item) => item.type === "blob" && item.path.startsWith(prefix) && imagePattern.test(item.path)).length;
     }
 
     function formatDate(timestamp) {
@@ -458,6 +615,7 @@
 
     async function loadTree() {
       countText.textContent = "Loading folders...";
+      folderTitle.textContent = "Loading";
       gallery.innerHTML = "";
       const data = await fetchJson(api(`git/trees/${branch}?recursive=1`));
       repoTree = data.tree || [];
@@ -473,22 +631,39 @@
     }
 
     function renderFolders() {
-      folderSelect.innerHTML = "";
+      folderList.innerHTML = "";
       if (!folders.length) {
-        folderSelect.append(new Option("No folders yet", ""));
-        folderSelect.disabled = true;
+        folderList.innerHTML = '<div class="empty">No folders yet</div>';
         return;
       }
 
-      folderSelect.disabled = false;
       for (const folder of folders) {
-        folderSelect.append(new Option(displayFolder(folder), folder));
+        const button = document.createElement("button");
+        button.className = `folder-item${folder === activeFolder ? " active" : ""}`;
+        button.type = "button";
+        button.setAttribute("aria-current", folder === activeFolder ? "page" : "false");
+        button.addEventListener("click", () => selectFolder(folder));
+
+        const icon = document.createElement("span");
+        icon.className = "folder-icon";
+        icon.setAttribute("aria-hidden", "true");
+
+        const name = document.createElement("span");
+        name.className = "folder-name";
+        name.textContent = displayFolder(folder);
+
+        const count = document.createElement("span");
+        count.className = "folder-count";
+        count.textContent = countImages(folder);
+
+        button.append(icon, name, count);
+        folderList.append(button);
       }
     }
 
     async function selectFolder(folder) {
       activeFolder = folder;
-      folderSelect.value = folder;
+      renderFolders();
       const url = new URL(location.href);
       if (folder) url.searchParams.set("folder", folder);
       else url.searchParams.delete("folder");
@@ -497,22 +672,27 @@
 
       if (!folder) {
         photos = [];
+        folderTitle.textContent = "No folder";
         countText.textContent = "Add folders under windows to start browsing.";
-        renderEmpty("Create a folder like windows/vacation and add images inside it.");
+        renderEmpty("Create a folder like windows/screenshots and add images inside it.");
         return;
       }
 
+      folderTitle.textContent = displayFolder(folder);
       countText.textContent = `Loading ${displayFolder(folder)}...`;
       const prefix = `${rootFolder}/${folder}/`;
       photos = repoTree
         .filter((item) => item.type === "blob" && item.path.startsWith(prefix) && imagePattern.test(item.path))
-        .map((item) => ({
-          path: item.path,
-          name: item.path.split("/").pop(),
-          url: raw(item.path),
-          timestamp: parseDateFromName(item.path),
-          timestampSource: parseDateFromName(item.path) ? "filename" : ""
-        }));
+        .map((item) => {
+          const timestamp = parseDateFromName(item.path);
+          return {
+            path: item.path,
+            name: item.path.split("/").pop(),
+            url: raw(item.path),
+            timestamp,
+            timestampSource: timestamp ? "filename" : ""
+          };
+        });
 
       await hydrateTimestamps(photos);
       sortPhotos();
@@ -552,7 +732,7 @@
         return;
       }
 
-      countText.textContent = `${photos.length} photo${photos.length === 1 ? "" : "s"} in ${displayFolder(activeFolder)}, sorted ${sortNewestFirst ? "newest first" : "oldest first"}.`;
+      countText.textContent = `${photos.length} photo${photos.length === 1 ? "" : "s"} sorted ${sortNewestFirst ? "newest first" : "oldest first"}.`;
       for (const [index, photo] of photos.entries()) {
         const tile = document.createElement("button");
         tile.className = "tile";
@@ -566,9 +746,9 @@
 
         const caption = document.createElement("span");
         caption.className = "caption";
-        caption.innerHTML = `<span class="name"></span><span class="time"></span>`;
+        caption.innerHTML = '<span class="name"></span><span class="time"></span>';
         caption.querySelector(".name").textContent = photo.name;
-        caption.querySelector(".time").textContent = `${formatDate(photo.timestamp)}${photo.timestampSource ? ` · ${photo.timestampSource}` : ""}`;
+        caption.querySelector(".time").textContent = `${formatDate(photo.timestamp)}${photo.timestampSource ? ` / ${photo.timestampSource}` : ""}`;
 
         tile.append(image, caption);
         gallery.append(tile);
@@ -591,7 +771,7 @@
       viewerImage.src = photo.url;
       viewerImage.alt = photo.name;
       viewerTitle.textContent = photo.name;
-      viewerMeta.textContent = `${activeIndex + 1} of ${photos.length} · ${formatDate(photo.timestamp)}${photo.timestampSource ? ` · ${photo.timestampSource}` : ""}`;
+      viewerMeta.textContent = `${activeIndex + 1} of ${photos.length} / ${formatDate(photo.timestamp)}${photo.timestampSource ? ` / ${photo.timestampSource}` : ""}`;
     }
 
     function moveViewer(direction) {
@@ -600,7 +780,6 @@
       updateViewer();
     }
 
-    folderSelect.addEventListener("change", () => selectFolder(folderSelect.value));
     sortButton.addEventListener("click", () => {
       sortNewestFirst = !sortNewestFirst;
       sortPhotos();
@@ -618,6 +797,7 @@
     });
 
     loadTree().catch((error) => {
+      folderTitle.textContent = "Offline";
       countText.textContent = "Could not load repository folders.";
       renderEmpty(error.message);
     });
