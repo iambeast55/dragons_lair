@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Window Browser</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f7f5ef;
+      color: #1c1d1f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(133, 176, 154, 0.28), transparent 38%),
+        linear-gradient(315deg, rgba(194, 86, 66, 0.16), transparent 42%),
+        #f7f5ef;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 12px 0 26px;
+      border-bottom: 1px solid rgba(28, 29, 31, 0.14);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4.8rem);
+      line-height: 0.96;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      margin: 10px 0 0;
+      color: #646057;
+      font-size: 0.98rem;
+      line-height: 1.5;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+      width: min(100%, 620px);
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      color: #646057;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    select,
+    .icon-button {
+      min-height: 42px;
+      border: 1px solid rgba(28, 29, 31, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #1c1d1f;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+    }
+
+    select {
+      width: 100%;
+      padding: 0 34px 0 12px;
+    }
+
+    .icon-button {
+      width: 44px;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+    }
+
+    .icon-button:hover,
+    select:hover {
+      border-color: rgba(28, 29, 31, 0.34);
+    }
+
+    .summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0 18px;
+      color: #646057;
+      font-size: 0.98rem;
+    }
+
+    .endpoint {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #3f594b;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .tile {
+      position: relative;
+      height: 260px;
+      overflow: hidden;
+      border: 1px solid rgba(28, 29, 31, 0.12);
+      border-radius: 8px;
+      background: #fffaf0;
+      color: inherit;
+      padding: 0;
+      text-align: left;
+    }
+
+    .tile img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      transition: transform 180ms ease;
+    }
+
+    .tile:hover img,
+    .tile:focus-visible img {
+      transform: scale(1.035);
+    }
+
+    .caption {
+      position: absolute;
+      inset: auto 0 0;
+      display: grid;
+      gap: 2px;
+      padding: 40px 12px 12px;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.76));
+      color: #fff;
+    }
+
+    .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .time {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.86rem;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+      border: 1px dashed rgba(28, 29, 31, 0.22);
+      border-radius: 8px;
+      color: #646057;
+      text-align: center;
+      padding: 32px;
+      background: rgba(255, 255, 255, 0.42);
+    }
+
+    .viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      grid-template-rows: auto 1fr auto;
+      background: rgba(11, 12, 14, 0.94);
+      color: #fff;
+    }
+
+    .viewer.open {
+      display: grid;
+    }
+
+    .viewer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+    }
+
+    .viewer-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .viewer-stage {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 54px 1fr 54px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+    }
+
+    .viewer-image {
+      max-width: 100%;
+      max-height: calc(100vh - 148px);
+      justify-self: center;
+      object-fit: contain;
+    }
+
+    .viewer button {
+      border-color: rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .viewer-foot {
+      padding: 0 16px 14px;
+      color: rgba(255, 255, 255, 0.72);
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      header {
+        display: grid;
+        align-items: stretch;
+      }
+
+      .controls {
+        grid-template-columns: 1fr 44px 44px;
+      }
+
+      .summary {
+        display: grid;
+      }
+
+      .tile {
+        height: 220px;
+      }
+
+      .viewer-stage {
+        grid-template-columns: 44px 1fr 44px;
+        padding: 0 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Dragon's Lair</h1>
+        <p class="meta">Browse screenshots.</p>
+      </div>
+
+      <div class="controls" aria-label="Photo controls">
+        <div class="field">
+          <label for="folderSelect">Folder</label>
+          <select id="folderSelect"></select>
+        </div>
+        <button class="icon-button" id="sortButton" type="button" title="Reverse timestamp sort" aria-label="Reverse timestamp sort">↕</button>
+        <button class="icon-button" id="refreshButton" type="button" title="Refresh folders and photos" aria-label="Refresh folders and photos">⟳</button>
+      </div>
+    </header>
+
+    <section class="summary" aria-live="polite">
+      <span id="countText">Loading folders...</span>
+      <span class="endpoint" id="endpointText"></span>
+    </section>
+
+    <main id="gallery" class="gallery"></main>
+  </div>
+
+  <aside class="viewer" id="viewer" aria-modal="true" role="dialog" aria-label="Photo viewer">
+    <div class="viewer-bar">
+      <div class="viewer-title" id="viewerTitle"></div>
+      <button class="icon-button" id="closeButton" type="button" title="Close" aria-label="Close">×</button>
+    </div>
+    <div class="viewer-stage">
+      <button class="icon-button" id="prevButton" type="button" title="Previous photo" aria-label="Previous photo">‹</button>
+      <img class="viewer-image" id="viewerImage" alt="">
+      <button class="icon-button" id="nextButton" type="button" title="Next photo" aria-label="Next photo">›</button>
+    </div>
+    <div class="viewer-foot" id="viewerMeta"></div>
+  </aside>
+
+  <script>
+    const owner = "iambeast55";
+    const repo = "dragons_lair";
+    const branch = "master";
+    const rootFolder = "windows";
+    const imagePattern = /\.(avif|gif|heic|jpeg|jpg|png|webp)$/i;
+
+    const folderSelect = document.querySelector("#folderSelect");
+    const sortButton = document.querySelector("#sortButton");
+    const refreshButton = document.querySelector("#refreshButton");
+    const countText = document.querySelector("#countText");
+    const endpointText = document.querySelector("#endpointText");
+    const gallery = document.querySelector("#gallery");
+    const viewer = document.querySelector("#viewer");
+    const viewerImage = document.querySelector("#viewerImage");
+    const viewerTitle = document.querySelector("#viewerTitle");
+    const viewerMeta = document.querySelector("#viewerMeta");
+
+    let repoTree = [];
+    let folders = [];
+    let photos = [];
+    let activeFolder = new URLSearchParams(location.search).get("folder") || "";
+    let sortNewestFirst = true;
+    let activeIndex = 0;
+
+    function api(path) {
+      return `https://api.github.com/repos/${owner}/${repo}/${path}`;
+    }
+
+    function raw(path) {
+      return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${encodeURIComponent(path).replaceAll("%2F", "/")}`;
+    }
+
+    function folderFromPath(path) {
+      const withoutRoot = path.slice(rootFolder.length + 1);
+      return withoutRoot.split("/")[0] || "";
+    }
+
+    function displayFolder(folder) {
+      return folder.replaceAll("-", " ").replaceAll("_", " ");
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return "No timestamp found";
+      return new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      }).format(new Date(timestamp));
+    }
+
+    function parseDateFromName(name) {
+      const compact = name.match(/(20\d{2}|19\d{2})([01]\d)([0-3]\d)[-_ ]?([0-2]\d)?([0-5]\d)?([0-5]\d)?/);
+      if (compact) {
+        const [, year, month, day, hour = "00", minute = "00", second = "00"] = compact;
+        const date = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+        return Number.isNaN(date.getTime()) ? null : date.getTime();
+      }
+
+      const separated = name.match(/(20\d{2}|19\d{2})[-_. ]([01]?\d)[-_. ]([0-3]?\d)/);
+      if (separated) {
+        const [, year, month, day] = separated;
+        const date = new Date(Number(year), Number(month) - 1, Number(day));
+        return Number.isNaN(date.getTime()) ? null : date.getTime();
+      }
+
+      return null;
+    }
+
+    function readAscii(view, offset, length) {
+      let value = "";
+      for (let index = 0; index < length; index += 1) {
+        value += String.fromCharCode(view.getUint8(offset + index));
+      }
+      return value;
+    }
+
+    function parseExifDate(buffer) {
+      const view = new DataView(buffer);
+      if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) return null;
+
+      let offset = 2;
+      while (offset + 4 < view.byteLength) {
+        const marker = view.getUint16(offset);
+        const size = view.getUint16(offset + 2);
+        if (marker === 0xffe1 && readAscii(view, offset + 4, 6) === "Exif\0\0") {
+          return parseTiffDate(view, offset + 10);
+        }
+        offset += 2 + size;
+      }
+      return null;
+    }
+
+    function parseTiffDate(view, start) {
+      const endian = readAscii(view, start, 2);
+      const little = endian === "II";
+      if (!little && endian !== "MM") return null;
+
+      const get16 = (offset) => view.getUint16(offset, little);
+      const get32 = (offset) => view.getUint32(offset, little);
+      const firstIfd = start + get32(start + 4);
+      const exifIfd = findTagOffset(view, firstIfd, 0x8769, get16, get32, start);
+      const dateOffset =
+        findTagOffset(view, firstIfd, 0x0132, get16, get32, start) ||
+        (exifIfd ? findTagOffset(view, exifIfd, 0x9003, get16, get32, start) : null) ||
+        (exifIfd ? findTagOffset(view, exifIfd, 0x9004, get16, get32, start) : null);
+
+      if (!dateOffset) return null;
+      const value = readAscii(view, dateOffset, 19);
+      const match = value.match(/(\d{4}):(\d{2}):(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+      if (!match) return null;
+      const [, year, month, day, hour, minute, second] = match;
+      const date = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+      return Number.isNaN(date.getTime()) ? null : date.getTime();
+    }
+
+    function findTagOffset(view, ifdOffset, wantedTag, get16, get32, tiffStart) {
+      if (ifdOffset + 2 >= view.byteLength) return null;
+      const entryCount = get16(ifdOffset);
+      for (let index = 0; index < entryCount; index += 1) {
+        const entry = ifdOffset + 2 + index * 12;
+        if (entry + 12 > view.byteLength) return null;
+        const tag = get16(entry);
+        if (tag !== wantedTag) continue;
+
+        const type = get16(entry + 2);
+        const count = get32(entry + 4);
+        const value = get32(entry + 8);
+        const byteCount = count * (type === 3 ? 2 : 1);
+        return byteCount <= 4 ? entry + 8 : tiffStart + value;
+      }
+      return null;
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.json();
+    }
+
+    async function loadTree() {
+      countText.textContent = "Loading folders...";
+      gallery.innerHTML = "";
+      const data = await fetchJson(api(`git/trees/${branch}?recursive=1`));
+      repoTree = data.tree || [];
+      folders = [...new Set(
+        repoTree
+          .filter((item) => item.type === "tree" && item.path.startsWith(`${rootFolder}/`))
+          .map((item) => folderFromPath(item.path))
+          .filter(Boolean)
+      )].sort((a, b) => a.localeCompare(b));
+
+      renderFolders();
+      await selectFolder(folders.includes(activeFolder) ? activeFolder : folders[0] || "");
+    }
+
+    function renderFolders() {
+      folderSelect.innerHTML = "";
+      if (!folders.length) {
+        folderSelect.append(new Option("No folders yet", ""));
+        folderSelect.disabled = true;
+        return;
+      }
+
+      folderSelect.disabled = false;
+      for (const folder of folders) {
+        folderSelect.append(new Option(displayFolder(folder), folder));
+      }
+    }
+
+    async function selectFolder(folder) {
+      activeFolder = folder;
+      folderSelect.value = folder;
+      const url = new URL(location.href);
+      if (folder) url.searchParams.set("folder", folder);
+      else url.searchParams.delete("folder");
+      history.replaceState(null, "", url);
+      endpointText.textContent = folder ? `?folder=${encodeURIComponent(folder)}` : "";
+
+      if (!folder) {
+        photos = [];
+        countText.textContent = "Add folders under windows to start browsing.";
+        renderEmpty("Create a folder like windows/vacation and add images inside it.");
+        return;
+      }
+
+      countText.textContent = `Loading ${displayFolder(folder)}...`;
+      const prefix = `${rootFolder}/${folder}/`;
+      photos = repoTree
+        .filter((item) => item.type === "blob" && item.path.startsWith(prefix) && imagePattern.test(item.path))
+        .map((item) => ({
+          path: item.path,
+          name: item.path.split("/").pop(),
+          url: raw(item.path),
+          timestamp: parseDateFromName(item.path),
+          timestampSource: parseDateFromName(item.path) ? "filename" : ""
+        }));
+
+      await hydrateTimestamps(photos);
+      sortPhotos();
+      renderGallery();
+    }
+
+    async function hydrateTimestamps(items) {
+      await Promise.all(items.map(async (photo) => {
+        if (!/\.(jpe?g)$/i.test(photo.name)) return;
+        try {
+          const response = await fetch(photo.url);
+          const buffer = await response.arrayBuffer();
+          const exifDate = parseExifDate(buffer);
+          if (exifDate) {
+            photo.timestamp = exifDate;
+            photo.timestampSource = "EXIF";
+          }
+        } catch {
+          // Filename dates remain useful when image metadata cannot be read.
+        }
+      }));
+    }
+
+    function sortPhotos() {
+      photos.sort((a, b) => {
+        const first = a.timestamp || 0;
+        const second = b.timestamp || 0;
+        return sortNewestFirst ? second - first || a.name.localeCompare(b.name) : first - second || a.name.localeCompare(b.name);
+      });
+    }
+
+    function renderGallery() {
+      gallery.innerHTML = "";
+      if (!photos.length) {
+        countText.textContent = `No images found in ${displayFolder(activeFolder)}.`;
+        renderEmpty("Supported files: .jpg, .jpeg, .png, .webp, .gif, .avif, .heic");
+        return;
+      }
+
+      countText.textContent = `${photos.length} photo${photos.length === 1 ? "" : "s"} in ${displayFolder(activeFolder)}, sorted ${sortNewestFirst ? "newest first" : "oldest first"}.`;
+      for (const [index, photo] of photos.entries()) {
+        const tile = document.createElement("button");
+        tile.className = "tile";
+        tile.type = "button";
+        tile.addEventListener("click", () => openViewer(index));
+
+        const image = document.createElement("img");
+        image.src = photo.url;
+        image.alt = photo.name;
+        image.loading = "lazy";
+
+        const caption = document.createElement("span");
+        caption.className = "caption";
+        caption.innerHTML = `<span class="name"></span><span class="time"></span>`;
+        caption.querySelector(".name").textContent = photo.name;
+        caption.querySelector(".time").textContent = `${formatDate(photo.timestamp)}${photo.timestampSource ? ` · ${photo.timestampSource}` : ""}`;
+
+        tile.append(image, caption);
+        gallery.append(tile);
+      }
+    }
+
+    function renderEmpty(message) {
+      gallery.innerHTML = `<div class="empty"><p>${message}</p></div>`;
+    }
+
+    function openViewer(index) {
+      activeIndex = index;
+      updateViewer();
+      viewer.classList.add("open");
+    }
+
+    function updateViewer() {
+      const photo = photos[activeIndex];
+      if (!photo) return;
+      viewerImage.src = photo.url;
+      viewerImage.alt = photo.name;
+      viewerTitle.textContent = photo.name;
+      viewerMeta.textContent = `${activeIndex + 1} of ${photos.length} · ${formatDate(photo.timestamp)}${photo.timestampSource ? ` · ${photo.timestampSource}` : ""}`;
+    }
+
+    function moveViewer(direction) {
+      if (!photos.length) return;
+      activeIndex = (activeIndex + direction + photos.length) % photos.length;
+      updateViewer();
+    }
+
+    folderSelect.addEventListener("change", () => selectFolder(folderSelect.value));
+    sortButton.addEventListener("click", () => {
+      sortNewestFirst = !sortNewestFirst;
+      sortPhotos();
+      renderGallery();
+    });
+    refreshButton.addEventListener("click", loadTree);
+    document.querySelector("#closeButton").addEventListener("click", () => viewer.classList.remove("open"));
+    document.querySelector("#prevButton").addEventListener("click", () => moveViewer(-1));
+    document.querySelector("#nextButton").addEventListener("click", () => moveViewer(1));
+    document.addEventListener("keydown", (event) => {
+      if (!viewer.classList.contains("open")) return;
+      if (event.key === "Escape") viewer.classList.remove("open");
+      if (event.key === "ArrowLeft") moveViewer(-1);
+      if (event.key === "ArrowRight") moveViewer(1);
+    });
+
+    loadTree().catch((error) => {
+      countText.textContent = "Could not load repository folders.";
+      renderEmpty(error.message);
+    });
+  </script>
+</body>
+</html>
