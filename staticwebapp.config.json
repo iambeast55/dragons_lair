@@ -1,0 +1,18 @@
+{
+  "routes": [
+    { "route": "/.auth/*", "allowedRoles": ["anonymous"] },
+    { "route": "/login.html", "allowedRoles": ["anonymous"] },
+    { "route": "/styles.css", "allowedRoles": ["anonymous"] },
+    { "route": "/login.js", "allowedRoles": ["anonymous"] },
+    { "route": "/windows/screenshots/2026-08-22_063000-build.png", "allowedRoles": ["anonymous"] },
+    { "route": "/*", "allowedRoles": ["authenticated"] }
+  ],
+  "responseOverrides": {
+    "401": { "statusCode": 302, "redirect": "/login.html" }
+  },
+  "globalHeaders": {
+    "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.blob.core.windows.net; img-src 'self' data: https://raw.githubusercontent.com https://*.blob.core.windows.net; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Content-Type-Options": "nosniff"
+  }
+}
