@@ -1,1 +1,3 @@
 .codex-logs/
+__pycache__/
+*.pyc

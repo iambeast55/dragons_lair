@@ -1,11 +1,7 @@
 const archiveConfig = {
-  owner: "iambeast55",
-  repo: "dragons_lair",
-  branch: "master",
-  rootFolder: "windows"
+  endpoint: "/api/archive"
 };
 
-const imagePattern = /\.(avif|gif|heic|jpeg|jpg|png|webp)$/i;
 const elements = {
   folderList: document.querySelector("#folderList"),
   folderTitle: document.querySelector("#folderTitle"),
@@ -24,34 +20,19 @@ const elements = {
   viewerMeta: document.querySelector("#viewerMeta")
 };
 
-let tree = [];
+let archivePhotos = [];
+let folderCounts = new Map();
 let folders = [];
 let photos = [];
 let selectedFolder = new URLSearchParams(location.search).get("folder") || "";
 let newestFirst = true;
 let activeIndex = 0;
 
-function githubApi(path) {
-  return `https://api.github.com/repos/${archiveConfig.owner}/${archiveConfig.repo}/${path}`;
-}
-
-function githubRaw(path) {
-  const safePath = encodeURIComponent(path).replaceAll("%2F", "/");
-  return `https://raw.githubusercontent.com/${archiveConfig.owner}/${archiveConfig.repo}/${archiveConfig.branch}/${safePath}`;
-}
-
-// Replace only this data source when the archive moves to Azure Blob Storage.
 const archiveSource = {
   async list() {
-    const response = await fetch(githubApi(`git/trees/${archiveConfig.branch}?recursive=1`), {
-      headers: { Accept: "application/vnd.github+json" }
-    });
+    const response = await fetch(archiveConfig.endpoint, { cache: "no-store" });
     if (!response.ok) throw new Error(`Archive request failed (${response.status})`);
-    const data = await response.json();
-    return data.tree || [];
-  },
-  imageUrl(path) {
-    return githubRaw(path);
+    return response.json();
   }
 };
 
@@ -59,13 +40,8 @@ function displayName(value) {
   return value.replaceAll("-", " ").replaceAll("_", " ");
 }
 
-function folderFromPath(path) {
-  return path.slice(archiveConfig.rootFolder.length + 1).split("/")[0] || "";
-}
-
 function imageCount(folder) {
-  const prefix = `${archiveConfig.rootFolder}/${folder}/`;
-  return tree.filter((item) => item.type === "blob" && item.path.startsWith(prefix) && imagePattern.test(item.path)).length;
+  return folderCounts.get(folder) || 0;
 }
 
 function parseFilenameDate(name) {
@@ -112,18 +88,16 @@ async function loadArchive() {
   elements.gallery.replaceChildren();
   elements.sourceStatus.textContent = "Connecting...";
   try {
-    tree = await archiveSource.list();
-    folders = [...new Set(
-      tree
-        .filter((item) => item.type === "tree" && item.path.startsWith(`${archiveConfig.rootFolder}/`))
-        .map((item) => folderFromPath(item.path))
-        .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b));
-    elements.sourceStatus.textContent = "Archive connected";
+    const archive = await archiveSource.list();
+    const folderData = Array.isArray(archive.folders) ? archive.folders : [];
+    archivePhotos = Array.isArray(archive.photos) ? archive.photos : [];
+    folderCounts = new Map(folderData.map((folder) => [folder.name, folder.count]));
+    folders = folderData.map((folder) => folder.name).filter(Boolean);
+    elements.sourceStatus.textContent = "Blob storage connected";
     renderFolders();
     await selectFolder(folders.includes(selectedFolder) ? selectedFolder : folders[0] || "");
   } catch (error) {
-    elements.sourceStatus.textContent = "Archive unavailable";
+    elements.sourceStatus.textContent = "Blob storage unavailable";
     elements.folderTitle.textContent = "Unavailable";
     elements.countText.textContent = "The archive could not be loaded.";
     renderEmpty(error.message);
@@ -170,20 +144,19 @@ async function selectFolder(folder) {
     photos = [];
     elements.folderTitle.textContent = "No folders";
     elements.countText.textContent = "Your archive is ready for its first folder.";
-    renderEmpty("Add an image folder under windows to begin browsing.");
+    renderEmpty("Uploaded workstation folders will appear here.");
     return;
   }
 
   elements.folderTitle.textContent = displayName(folder);
   elements.countText.textContent = `Loading ${displayName(folder)}...`;
-  const prefix = `${archiveConfig.rootFolder}/${folder}/`;
-  photos = tree
-    .filter((item) => item.type === "blob" && item.path.startsWith(prefix) && imagePattern.test(item.path))
+  photos = archivePhotos
+    .filter((item) => item.folder === folder)
     .map((item) => ({
       path: item.path,
-      name: item.path.split("/").pop(),
-      url: archiveSource.imageUrl(item.path),
-      timestamp: parseFilenameDate(item.path)
+      name: item.name || item.path.split("/").pop(),
+      url: item.url,
+      timestamp: Date.parse(item.timestamp) || parseFilenameDate(item.path)
     }));
   sortPhotos();
   renderGallery();
