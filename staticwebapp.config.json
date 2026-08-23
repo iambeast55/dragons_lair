@@ -5,7 +5,7 @@
     { "route": "/styles.css", "allowedRoles": ["anonymous"] },
     { "route": "/login.js", "allowedRoles": ["anonymous"] },
     { "route": "/assets/cyber-login.png", "allowedRoles": ["anonymous"] },
-    { "route": "/*", "allowedRoles": ["authenticated"] }
+    { "route": "/*", "allowedRoles": ["user"] }
   ],
   "responseOverrides": {
     "401": { "statusCode": 302, "redirect": "/login.html" }
