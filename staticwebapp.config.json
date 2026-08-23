@@ -4,7 +4,7 @@
     { "route": "/login.html", "allowedRoles": ["anonymous"] },
     { "route": "/styles.css", "allowedRoles": ["anonymous"] },
     { "route": "/login.js", "allowedRoles": ["anonymous"] },
-    { "route": "/windows/screenshots/2026-08-22_063000-build.png", "allowedRoles": ["anonymous"] },
+    { "route": "/assets/cyber-login.png", "allowedRoles": ["anonymous"] },
     { "route": "/*", "allowedRoles": ["authenticated"] }
   ],
   "responseOverrides": {

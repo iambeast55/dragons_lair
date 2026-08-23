@@ -6,7 +6,7 @@ async function redirectSignedInUser() {
     if (clientPrincipal) location.replace("/");
   } catch {
     const status = document.querySelector("#loginStatus");
-    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    if (status && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
       status.textContent = "Microsoft sign-in becomes active after deployment to Azure.";
     }
   }
