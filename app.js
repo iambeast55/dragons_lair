@@ -81,14 +81,19 @@ function formatDate(timestamp) {
 async function api(path, options = {}) {
   const response = await fetch(path, { cache: "no-store", credentials: "same-origin", ...options });
   const payload = await response.json().catch(() => ({}));
+  if (response.status === 401) {
+    const target = `${location.pathname}${location.search}`;
+    location.replace(`/login.html?return=${encodeURIComponent(target)}`);
+    throw new Error("Authentication required");
+  }
   if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
   return payload;
 }
 
 async function loadIdentity() {
-  const label = "Protected archive";
+  const label = "Archive session";
   elements.userName.textContent = label;
-  elements.userInitial.textContent = "P";
+  elements.userInitial.textContent = "A";
 }
 
 async function loadFolders(force = false) {
@@ -282,6 +287,10 @@ elements.sortButton.addEventListener("click", async () => {
   await loadPhotos();
 });
 elements.refreshButton.addEventListener("click", () => loadFolders(true));
+document.querySelector("#logoutButton").addEventListener("click", async () => {
+  await fetch("/api/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
+  location.replace("/login.html");
+});
 elements.previousPage.addEventListener("click", async () => { currentPage -= 1; await loadPhotos(); elements.gallery.scrollIntoView(); });
 elements.nextPage.addEventListener("click", async () => { currentPage += 1; await loadPhotos(); elements.gallery.scrollIntoView(); });
 document.querySelector("#closeButton").addEventListener("click", () => elements.viewer.close());

@@ -14,9 +14,14 @@
     <section class="login-form">
       <div class="login-mark" aria-hidden="true">DL</div>
       <h1>Archive access</h1>
-      <p class="login-status">This site uses Azure's password-protected visitor gate.</p>
-      <a class="login-button" href="/">Open archive</a>
+      <form id="loginForm">
+        <label for="password">Shared password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+        <p class="login-status" id="loginStatus" role="alert" aria-live="polite"></p>
+        <button class="login-button" id="loginButton" type="submit">Enter archive</button>
+      </form>
     </section>
   </main>
+  <script src="login.js" defer></script>
 </body>
 </html>
