@@ -1,21 +1,15 @@
 {
   "routes": [
-    { "route": "/.auth/*", "allowedRoles": ["anonymous"] },
-    { "route": "/login.html", "allowedRoles": ["anonymous"] },
-    { "route": "/styles.css", "allowedRoles": ["anonymous"] },
-    { "route": "/login.js", "allowedRoles": ["anonymous"] },
-    { "route": "/assets/cyber-login.png", "allowedRoles": ["anonymous"] },
-    { "route": "/*", "allowedRoles": ["user"] }
+    { "route": "/api/*", "allowedRoles": ["anonymous"] },
+    { "route": "/*", "allowedRoles": ["anonymous"] }
   ],
-  "responseOverrides": {
-    "401": { "statusCode": 302, "redirect": "/login.html" }
-  },
   "platform": {
     "apiRuntime": "python:3.10"
   },
   "globalHeaders": {
     "Content-Security-Policy": "default-src 'self'; connect-src 'self'; img-src 'self' data: https://*.blob.core.windows.net; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'",
     "Referrer-Policy": "strict-origin-when-cross-origin",
-    "X-Content-Type-Options": "nosniff"
+    "X-Content-Type-Options": "nosniff",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
   }
 }

@@ -1,15 +1,40 @@
-async function redirectSignedInUser() {
+const form = document.querySelector("#loginForm");
+const status = document.querySelector("#loginStatus");
+const button = document.querySelector("#loginButton");
+
+async function checkSession() {
   try {
-    const response = await fetch("/.auth/me", { credentials: "same-origin" });
-    if (!response.ok) return;
-    const { clientPrincipal } = await response.json();
-    if (clientPrincipal) location.replace("/");
+    const response = await fetch("/api/session", { cache: "no-store", credentials: "same-origin" });
+    if (response.ok) location.replace("/");
   } catch {
-    const status = document.querySelector("#loginStatus");
-    if (status && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
-      status.textContent = "Microsoft sign-in becomes active after deployment to Azure.";
-    }
+    status.textContent = "The authentication service is unavailable.";
   }
 }
 
-redirectSignedInUser();
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  status.textContent = "";
+  button.disabled = true;
+  button.textContent = "Signing in…";
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: form.username.value,
+        password: form.password.value
+      })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "Sign-in failed.");
+    location.replace("/");
+  } catch (error) {
+    status.textContent = error.message;
+    button.disabled = false;
+    button.textContent = "Enter archive";
+    form.password.select();
+  }
+});
+
+checkSession();

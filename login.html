@@ -11,11 +11,14 @@
   <img class="login-backdrop" src="assets/cyber-login.png" alt="" aria-hidden="true">
   <div class="login-shade" aria-hidden="true"></div>
   <main class="login-content">
-    <h1>Your windows,<br>kept in order.</h1>
-    <a class="login-button" href="/.auth/login/aad">
-      <span class="microsoft-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-      Continue with Microsoft
-    </a>
+    <form class="login-form" id="loginForm">
+      <div class="login-mark" aria-hidden="true">DL</div>
+      <h1>Sign in</h1>
+      <label>Username<input id="username" name="username" autocomplete="username" required autofocus></label>
+      <label>Password<input id="password" name="password" type="password" autocomplete="current-password" required></label>
+      <p class="login-status" id="loginStatus" role="alert" aria-live="polite"></p>
+      <button class="login-button" id="loginButton" type="submit">Enter archive</button>
+    </form>
   </main>
   <script src="login.js" defer></script>
 </body>

@@ -12,10 +12,18 @@
     <aside class="sidebar" aria-label="Archive navigation">
       <a class="brand" href="/" aria-label="Dragon's Lair home">
         <span class="brand-mark" aria-hidden="true">D</span>
-        <span><strong>Dragon's Lair</strong><small>Private archive</small></span>
+        <span><strong>Dragon's Lair</strong><small>Screenshot archive</small></span>
       </a>
+      <div class="archive-stats">
+        <span><strong id="hostCount">0</strong> hosts</span>
+        <span><strong id="photoCount">0</strong> screenshots</span>
+      </div>
+      <label class="folder-search">
+        <span class="sr-only">Filter teams or IP addresses</span>
+        <input id="folderSearch" type="search" placeholder="Filter teams or IPs…" autocomplete="off">
+      </label>
       <div class="side-heading">
-        <span>Folders</span>
+        <span>Teams</span>
         <button class="icon-button" id="refreshButton" type="button" title="Refresh archive" aria-label="Refresh archive">&#8635;</button>
       </div>
       <nav class="folder-list" id="folderList" aria-label="Photo folders"></nav>
@@ -28,7 +36,7 @@
     <main class="main-content">
       <header class="topbar">
         <div class="page-heading">
-          <p class="eyebrow">Blob archive</p>
+          <p class="eyebrow" id="teamLabel">Blob archive</p>
           <h1 id="folderTitle">Loading</h1>
           <p id="countText" class="summary" aria-live="polite">Loading your archive...</p>
         </div>
@@ -41,12 +49,17 @@
             <span class="avatar" id="userInitial" aria-hidden="true">U</span>
             <span class="account-copy">
               <strong id="userName">Signed in</strong>
-              <a href="/.auth/logout">Sign out</a>
+              <button id="logoutButton" type="button">Sign out</button>
             </span>
           </div>
         </div>
       </header>
       <section class="gallery" id="gallery" aria-label="Photos"></section>
+      <nav class="pagination" id="pagination" aria-label="Screenshot pages" hidden>
+        <button id="previousPage" type="button">Previous</button>
+        <strong id="pageStatus">Page 1 of 1</strong>
+        <button id="nextPage" type="button">Next</button>
+      </nav>
     </main>
   </div>
 
@@ -61,6 +74,7 @@
       <button class="viewer-nav next" id="nextButton" type="button" title="Next photo" aria-label="Next photo">&rsaquo;</button>
     </div>
   </dialog>
+  <script src="team-map.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>
