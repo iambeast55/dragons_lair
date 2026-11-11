@@ -11,7 +11,7 @@ async function sessionIsActive() {
   if (!token) return false;
   const response = await fetch("/api/session", {
     cache: "no-store",
-    headers: { "Authorization": `Bearer ${token}` }
+    headers: { "X-Archive-Session": token }
   });
   if (!response.ok) return false;
   const active = Boolean((await response.json()).authenticated);

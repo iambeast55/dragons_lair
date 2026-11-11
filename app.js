@@ -82,7 +82,7 @@ function formatDate(timestamp) {
 async function api(path, options = {}) {
   const headers = new Headers(options.headers || {});
   const token = sessionStorage.getItem(SESSION_KEY);
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (token) headers.set("X-Archive-Session", token);
   const response = await fetch(path, { cache: "no-store", ...options, headers });
   const payload = await response.json().catch(() => ({}));
   if (response.status === 401) {
@@ -296,7 +296,7 @@ document.querySelector("#logoutButton").addEventListener("click", async () => {
   const token = sessionStorage.getItem(SESSION_KEY);
   await fetch("/api/logout", {
     method: "POST",
-    headers: token ? { "Authorization": `Bearer ${token}` } : {}
+    headers: token ? { "X-Archive-Session": token } : {}
   }).catch(() => {});
   sessionStorage.removeItem(SESSION_KEY);
   location.replace("/login.html");

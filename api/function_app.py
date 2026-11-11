@@ -77,10 +77,11 @@ def create_session_token():
 
 def request_session(req):
     try:
+        token = req.headers.get("x-archive-session", "").strip()
         authorization = req.headers.get("authorization", "")
-        if authorization.lower().startswith("bearer "):
+        if not token and authorization.lower().startswith("bearer "):
             token = authorization[7:].strip()
-        else:
+        if not token:
             cookie = SimpleCookie()
             cookie.load(req.headers.get("cookie", ""))
             token = cookie[SESSION_COOKIE].value
