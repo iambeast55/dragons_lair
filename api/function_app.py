@@ -77,9 +77,13 @@ def create_session_token():
 
 def request_session(req):
     try:
-        cookie = SimpleCookie()
-        cookie.load(req.headers.get("cookie", ""))
-        token = cookie[SESSION_COOKIE].value
+        authorization = req.headers.get("authorization", "")
+        if authorization.lower().startswith("bearer "):
+            token = authorization[7:].strip()
+        else:
+            cookie = SimpleCookie()
+            cookie.load(req.headers.get("cookie", ""))
+            token = cookie[SESSION_COOKIE].value
         payload, supplied_signature = token.split(".", 1)
         expected_signature = base64url_encode(hmac.new(
             session_secret(), payload.encode("ascii"), hashlib.sha256
@@ -115,16 +119,6 @@ def record_login_failure(address):
 def clear_login_failures(address):
     with LOGIN_ATTEMPTS_LOCK:
         LOGIN_ATTEMPTS.pop(address, None)
-
-
-def session_cookie(token, max_age=SESSION_TTL_SECONDS):
-    # Azure Static Web Apps managed APIs can drop Set-Cookie when a SameSite
-    # attribute is present. Without it, modern browsers default to Lax, which
-    # is sufficient for this same-origin, first-party session.
-    return (
-        f"{SESSION_COOKIE}={token}; Path=/; Max-Age={max_age}; "
-        "HttpOnly; Secure"
-    )
 
 
 def storage_client():
@@ -235,10 +229,11 @@ def login(req: func.HttpRequest) -> func.HttpResponse:
         logging.error("Login is not configured: %s", error)
         return json_response({"error": "Login is not configured"}, 503)
     clear_login_failures(address)
-    return json_response(
-        {"authenticated": True},
-        headers={"Set-Cookie": session_cookie(token)},
-    )
+    return json_response({
+        "authenticated": True,
+        "token": token,
+        "expiresIn": SESSION_TTL_SECONDS,
+    })
 
 
 @app.route(route="session", methods=["GET"])
@@ -248,10 +243,7 @@ def session(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="logout", methods=["POST"])
 def logout(req: func.HttpRequest) -> func.HttpResponse:
-    return json_response(
-        {"authenticated": False},
-        headers={"Set-Cookie": session_cookie("", max_age=0)},
-    )
+    return json_response({"authenticated": False})
 
 
 def json_response(payload, status_code=200, headers=None):

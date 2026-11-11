@@ -1,5 +1,6 @@
 const PAGE_SIZE = 36;
 const TEAM_BY_OCTET = window.DRAGONS_LAIR_TEAM_BY_OCTET;
+const SESSION_KEY = "dragons_lair_session";
 
 const elements = {
   folderList: document.querySelector("#folderList"),
@@ -79,9 +80,13 @@ function formatDate(timestamp) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, { cache: "no-store", credentials: "same-origin", ...options });
+  const headers = new Headers(options.headers || {});
+  const token = sessionStorage.getItem(SESSION_KEY);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const response = await fetch(path, { cache: "no-store", ...options, headers });
   const payload = await response.json().catch(() => ({}));
   if (response.status === 401) {
+    sessionStorage.removeItem(SESSION_KEY);
     const target = `${location.pathname}${location.search}`;
     location.replace(`/login.html?return=${encodeURIComponent(target)}`);
     throw new Error("Authentication required");
@@ -288,7 +293,12 @@ elements.sortButton.addEventListener("click", async () => {
 });
 elements.refreshButton.addEventListener("click", () => loadFolders(true));
 document.querySelector("#logoutButton").addEventListener("click", async () => {
-  await fetch("/api/logout", { method: "POST", credentials: "same-origin" }).catch(() => {});
+  const token = sessionStorage.getItem(SESSION_KEY);
+  await fetch("/api/logout", {
+    method: "POST",
+    headers: token ? { "Authorization": `Bearer ${token}` } : {}
+  }).catch(() => {});
+  sessionStorage.removeItem(SESSION_KEY);
   location.replace("/login.html");
 });
 elements.previousPage.addEventListener("click", async () => { currentPage -= 1; await loadPhotos(); elements.gallery.scrollIntoView(); });

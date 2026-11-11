@@ -2,13 +2,21 @@ const form = document.querySelector("#loginForm");
 const password = document.querySelector("#password");
 const status = document.querySelector("#loginStatus");
 const button = document.querySelector("#loginButton");
+const sessionKey = "dragons_lair_session";
 const requestedPath = new URLSearchParams(location.search).get("return") || "/";
 const returnPath = requestedPath.startsWith("/") && !requestedPath.startsWith("//") ? requestedPath : "/";
 
 async function sessionIsActive() {
-  const response = await fetch("/api/session", { cache: "no-store", credentials: "same-origin" });
+  const token = sessionStorage.getItem(sessionKey);
+  if (!token) return false;
+  const response = await fetch("/api/session", {
+    cache: "no-store",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
   if (!response.ok) return false;
-  return Boolean((await response.json()).authenticated);
+  const active = Boolean((await response.json()).authenticated);
+  if (!active) sessionStorage.removeItem(sessionKey);
+  return active;
 }
 
 sessionIsActive().then((active) => {
@@ -29,6 +37,8 @@ form.addEventListener("submit", async (event) => {
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || "Sign-in failed");
+    if (!payload.token) throw new Error("The server did not create a session");
+    sessionStorage.setItem(sessionKey, payload.token);
     location.replace(returnPath);
   } catch (error) {
     password.select();
