@@ -118,9 +118,12 @@ def clear_login_failures(address):
 
 
 def session_cookie(token, max_age=SESSION_TTL_SECONDS):
+    # Azure Static Web Apps managed APIs can drop Set-Cookie when a SameSite
+    # attribute is present. Without it, modern browsers default to Lax, which
+    # is sufficient for this same-origin, first-party session.
     return (
         f"{SESSION_COOKIE}={token}; Path=/; Max-Age={max_age}; "
-        "HttpOnly; Secure; SameSite=Strict"
+        "HttpOnly; Secure"
     )
 
 
