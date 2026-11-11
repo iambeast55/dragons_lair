@@ -15,7 +15,6 @@ const elements = {
   sourceStatus: document.querySelector("#sourceStatus"),
   userName: document.querySelector("#userName"),
   userInitial: document.querySelector("#userInitial"),
-  logoutButton: document.querySelector("#logoutButton"),
   hostCount: document.querySelector("#hostCount"),
   photoCount: document.querySelector("#photoCount"),
   pagination: document.querySelector("#pagination"),
@@ -81,20 +80,15 @@ function formatDate(timestamp) {
 
 async function api(path, options = {}) {
   const response = await fetch(path, { cache: "no-store", credentials: "same-origin", ...options });
-  if (response.status === 401) {
-    location.replace("/login.html");
-    throw new Error("Authentication required");
-  }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
   return payload;
 }
 
 async function loadIdentity() {
-  const identity = await api("/api/session");
-  const label = identity.username || "Signed in";
+  const label = "Protected archive";
   elements.userName.textContent = label;
-  elements.userInitial.textContent = label.charAt(0).toUpperCase() || "U";
+  elements.userInitial.textContent = "P";
 }
 
 async function loadFolders(force = false) {
@@ -290,10 +284,6 @@ elements.sortButton.addEventListener("click", async () => {
 elements.refreshButton.addEventListener("click", () => loadFolders(true));
 elements.previousPage.addEventListener("click", async () => { currentPage -= 1; await loadPhotos(); elements.gallery.scrollIntoView(); });
 elements.nextPage.addEventListener("click", async () => { currentPage += 1; await loadPhotos(); elements.gallery.scrollIntoView(); });
-elements.logoutButton.addEventListener("click", async () => {
-  await fetch("/api/logout", { method: "POST", credentials: "same-origin" });
-  location.replace("/login.html");
-});
 document.querySelector("#closeButton").addEventListener("click", () => elements.viewer.close());
 document.querySelector("#prevButton").addEventListener("click", () => moveViewer(-1));
 document.querySelector("#nextButton").addEventListener("click", () => moveViewer(1));

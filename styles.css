@@ -73,10 +73,9 @@ a { color: inherit; }
 .sort-icon { color: var(--accent); font-size: 0.92rem; }
 .account { display: flex; align-items: center; gap: 9px; min-width: 140px; }
 .avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: #0b1112; background: var(--warm); font-size: 0.75rem; font-weight: 800; }
-.account-copy strong, .account-copy button { display: block; letter-spacing: 0; }
+.account-copy strong, .account-copy .protected-label { display: block; letter-spacing: 0; }
 .account-copy strong { max-width: 150px; overflow: hidden; text-overflow: ellipsis; color: #dce1e4; font-size: 0.76rem; white-space: nowrap; }
-.account-copy button { width: fit-content; margin: 2px 0 0; padding: 0; border: 0; color: var(--subtle); background: transparent; font-size: 0.68rem; cursor: pointer; }
-.account-copy button:hover, .account-copy button:focus-visible { color: var(--ink); outline: none; }
+.account-copy .protected-label { margin-top: 2px; color: var(--subtle); font-size: 0.68rem; }
 
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; padding-top: 24px; }
 .photo-tile { min-width: 0; padding: 0; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; color: inherit; background: var(--surface); text-align: left; cursor: pointer; }
